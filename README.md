@@ -7,6 +7,30 @@ A local stand-in for Azure OpenAI. A [LiteLLM](https://github.com/BerriAI/litell
 | `gpt-4o`                 | `llama3.2`          |
 | `text-embedding-3-small` | `nomic-embed-text`  |
 
+## Architecture
+
+```mermaid
+flowchart LR
+    app["Your app<br/>(Azure OpenAI SDK)"]
+
+    subgraph compose["docker compose"]
+        proxy["fake-azure<br/>LiteLLM proxy<br/>:4000"]
+        ollama["ollama<br/>:11434"]
+        pull["ollama-pull<br/>(one-shot)"]
+        vol[("ollama_data<br/>volume")]
+    end
+
+    app -- "model=gpt-4o<br/>model=text-embedding-3-small" --> proxy
+    proxy -- "ollama/llama3.2<br/>ollama/nomic-embed-text" --> ollama
+    pull -. "pulls models on first start" .-> vol
+    ollama --- vol
+```
+
+- Your app sends normal Azure OpenAI requests to `localhost:4000`, using a deployment name as `model`.
+- `fake-azure` looks the deployment name up in `litellm_config.yaml` and forwards the request to the matching Ollama model.
+- `ollama` runs the models, which are stored in the `ollama_data` volume.
+- Start order: `ollama` starts first. When it is healthy, `ollama-pull` downloads the models and exits. `fake-azure` starts only after that download succeeds.
+
 ## Start the proxy
 
 ```bash
