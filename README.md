@@ -70,11 +70,22 @@ python call-azure-with-memory.py
 An interactive chat with the `gpt-4o` deployment. Replies are printed as they are generated. The script keeps the last 5 turns and adds them to each prompt as `User:` / `Assistant:` lines, so the model can refer to earlier messages. History is kept in memory only and is lost when the script exits. Type `exit` or `quit` (or press Ctrl-D) to stop. Example:
 
 ```
-You: My name is Sergio.
-Assistant: Hello Sergio, it's nice to meet you.
+Chat with fake Azure OpenAI (remembers last 5 turns). Type 'exit' or 'quit' to stop.
 
-You: What is my name?
-Assistant: Your name is Sergio.
+You: What is the capital of Italy?
+Assistant: The capital of Italy is Rome (Italian: Roma).
+
+You: What cities are around it?
+Assistant: The cities surrounding Rome include:
+
+1. Florence: Located in the Tuscany region, about 230 km (143 miles) northwest of Rome.
+2. Venice: Located in the Veneto region, about 395 km (245 miles) northeast of Rome.
+3. Milan: Located in the Lombardy region, about 340 km (211 miles) north of Rome.
+4. Naples: Located in the Campania region, about 280 km (174 miles) southeast of Rome.
+5. Bologna: Located in the Emilia-Romagna region, about 170 km (106 miles) north of Rome.
+6. Perugia: Located in the Umbria region, about 210 km (130 miles) east of Rome.
+
+These cities, among others, are all connected to Rome by an extensive network of roads, railways, and flights, making them accessible for tourists and travelers.
 
 You: quit
 Bye.
