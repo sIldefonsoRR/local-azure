@@ -28,6 +28,7 @@ flowchart LR
 - `fake-azure` looks the deployment name up in `litellm_config.yaml` and forwards the request to the matching Ollama model.
 - `ollama` runs the models, which are stored in the `ollama_data` volume. On every start it also downloads any models that are missing or out of date.
 - Start order: `ollama` reports healthy only once both models are downloaded, and `fake-azure` waits for that before starting.
+- Ports: the proxy is on `127.0.0.1:4000`. The container's Ollama is on `127.0.0.1:11435`, not 11434 as before, so it doesn't clash with an Ollama app running on your Mac. If you used `localhost:11434` to reach the container's Ollama, switch to `localhost:11435`: `localhost:11434` now reaches the Mac app, if one is running, or nothing.
 
 ## Start the proxy
 
@@ -98,7 +99,7 @@ You: quit
 Bye.
 ```
 
-Note: `llama3.2` is a small local model and can state wrong facts with confidence. In the example above, several distances are wrong (Milan is about 480 km from Rome, Naples about 190 km, Bologna about 300 km), and Milan and Venice are not really "around" Rome. Don't rely on its answers for facts.
+Note: `llama3.2` is a small local model and can state wrong facts with confidence. In the example above, several distances and directions are wrong (Milan is about 480 km from Rome, Naples about 190 km, Bologna about 300 km, and Perugia about 135 km north, not 210 km east), and Milan and Venice are not really "around" Rome. Don't rely on its answers for facts.
 
 ## Point an existing app at it
 
@@ -126,7 +127,22 @@ client = AzureOpenAI(
 )
 ```
 
-If your app runs inside a Docker container, `localhost` points at the container itself. Use `http://host.docker.internal:4000` instead.
+If your app runs inside a Docker container, `localhost` points at the container itself:
+
+- **Docker Desktop (macOS, Windows):** use `http://host.docker.internal:4000`.
+- **Linux:** `host.docker.internal` can't reach the proxy, because port 4000 is published on `127.0.0.1` only. Attach your app's container to this stack's network and use `http://fake-azure:4000` instead, for example `docker run --network local-azure_default ...`, or in your app's compose file:
+
+  ```yaml
+  services:
+    my-app:
+      networks: [local-azure]
+  networks:
+    local-azure:
+      name: local-azure_default
+      external: true
+  ```
+
+  The network name comes from this folder's name, so it changes if you clone the repo into a folder with another name. Check it with `docker network ls`.
 
 ### 2. Entra ID / managed identity
 
@@ -170,4 +186,4 @@ What to do:
 
 - **Response quality.** `llama3.2` is a small local model, far weaker than GPT-4o. Use the proxy to check how your app connects to and calls the API, not to judge answer quality.
 - **Unsupported settings are ignored.** `drop_params: true` in `litellm_config.yaml` makes the proxy drop request settings Ollama doesn't support instead of failing. It's required because the SDK sends `encoding_format=base64` on every embeddings call, which Ollama rejects. The side effect is that some other settings your app sends may be ignored without an error, so a request can succeed locally but behave differently than on Azure.
-- **No auth, quotas or content filtering.** The proxy runs without a master key, so `docker-compose.yml` publishes port 4000 on `127.0.0.1` only. It is reachable from this machine and from other local containers through `host.docker.internal`, but not from the network. Don't change that binding to expose it. The container's Ollama is likewise published on `127.0.0.1:11435` only (not 11434, so it doesn't clash with an Ollama app running on your Mac); the proxy doesn't need it, but you can use it to query the container's models directly, for example `curl localhost:11435/api/tags`.
+- **No auth, quotas or content filtering.** The proxy runs without a master key, so `docker-compose.yml` publishes port 4000 on `127.0.0.1` only. It is reachable from this machine and from other containers (through `host.docker.internal` on Docker Desktop, or the stack's network on Linux, see above), but not from the network. Don't change that binding to expose it. The container's Ollama is likewise published on `127.0.0.1:11435` only (not 11434, so it doesn't clash with an Ollama app running on your Mac); the proxy doesn't need it, but you can use it to query the container's models directly, for example `curl localhost:11435/api/tags`.
