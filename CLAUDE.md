@@ -18,7 +18,7 @@ docker compose logs -f ollama fake-azure
 # Smoke test via Azure SDK (uses local venv, Python 3.15)
 source .venv/bin/activate
 pip install -r requirements.txt   # only if venv is missing deps
-python call_azure.py
+python call-azure.py
 
 # Reload after editing litellm_config.yaml
 docker compose restart fake-azure
@@ -41,4 +41,4 @@ To expose a new deployment: add a `model_list` entry (with `api_base: http://oll
 
 `litellm_settings.drop_params: true` is required: the OpenAI SDK sends `encoding_format=base64` on embeddings calls, which Ollama rejects with `UnsupportedParamsError`.
 
-**Auth**: no master key is set (`LITELLM_DANGEROUSLY_PERMIT_WEAK_OR_UNSET_MASTER_KEY=true`), so any `api_key` works. Clients use `AzureOpenAI(azure_endpoint="http://localhost:4000", api_key=<anything>, api_version=...)` — see `call_azure.py`. Local-dev only; do not expose port 4000.
+**Auth**: no master key is set (`LITELLM_DANGEROUSLY_PERMIT_WEAK_OR_UNSET_MASTER_KEY=true`), so any `api_key` works. Clients use `AzureOpenAI(azure_endpoint="http://localhost:4000", api_key=<anything>, api_version=...)` — see `call-azure.py`. Local-dev only; do not expose port 4000.

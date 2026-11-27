@@ -45,10 +45,20 @@ Check that everything works:
 
 ```bash
 source .venv/bin/activate
-python call_azure.py
+python call-azure.py
 ```
 
-You should see a chat reply followed by a line like `Embedding dims: 768, first 5: [...]`.
+The script asks for a question, sends it to the `gpt-4o` deployment and prints the reply and how long the call took. It then embeds the same question with `text-embedding-3-small`. Example:
+
+```
+Enter your question: Say hi in 3 words
+Calling fake Azure OpenAI (LiteLLM + Ollama)...
+Hello there!
+Time taken: 8.273327112197876 seconds
+Embedding dims: 768, first 5: [...]
+```
+
+To run it without typing, pipe the question in: `echo "Say hi in 3 words" | python call-azure.py`.
 
 ## Point an existing app at it
 
