@@ -5,26 +5,25 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-  ollama-pull:
-    image: ollama/ollama:latest
-    volumes:
-      - ollama_data:/root/.ollama
-    environment:
-      OLLAMA_HOST: http://ollama:11434
+    # Start the server, pull models into the volume, then keep serving.
+    # $$ escapes $ from Compose interpolation.
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        ollama pull llama3.2
-        ollama pull nomic-embed-text
-    depends_on:
-      ollama:
-        condition: service_healthy
+        ollama serve &
+        pid=$$!
+        trap 'kill $$pid; wait $$pid; exit 0' TERM INT
+        until ollama list >/dev/null 2>&1; do sleep 1; done
+        ollama pull llama3.2         || echo "WARN: pull llama3.2 failed"
+        ollama pull nomic-embed-text || echo "WARN: pull nomic-embed-text failed"
+        wait $$pid
+    # Healthy only once both models are present, so fake-azure waits for the pull.
+    healthcheck:
+      test: ["CMD-SHELL", "ollama show llama3.2 >/dev/null && ollama show nomic-embed-text >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15m # first-run download time; failures don't count during this
 
   fake-azure:
     image: ghcr.io/berriai/litellm:main-latest
@@ -36,8 +35,8 @@ services:
       - ./litellm_config.yaml:/app/config.yaml
     command: ["--config", "/app/config.yaml", "--port", "4000"]
     depends_on:
-      ollama-pull:
-        condition: service_completed_successfully
+      ollama:
+        condition: service_healthy
 
 volumes:
   ollama_data:

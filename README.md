@@ -15,21 +15,19 @@ flowchart LR
 
     subgraph compose["docker compose"]
         proxy["fake-azure<br/>LiteLLM proxy<br/>:4000"]
-        ollama["ollama<br/>:11434"]
-        pull["ollama-pull<br/>(one-shot)"]
+        ollama["ollama<br/>:11434<br/>(serves + pulls models)"]
         vol[("ollama_data<br/>volume")]
     end
 
     app -- "model=gpt-4o<br/>model=text-embedding-3-small" --> proxy
     proxy -- "ollama/llama3.2<br/>ollama/nomic-embed-text" --> ollama
-    pull -. "pulls models on first start" .-> vol
-    ollama --- vol
+    ollama -- "pulls models on start" --> vol
 ```
 
 - Your app sends normal Azure OpenAI requests to `localhost:4000`, using a deployment name as `model`.
 - `fake-azure` looks the deployment name up in `litellm_config.yaml` and forwards the request to the matching Ollama model.
-- `ollama` runs the models, which are stored in the `ollama_data` volume.
-- Start order: `ollama` starts first. When it is healthy, `ollama-pull` downloads the models and exits. `fake-azure` starts only after that download succeeds.
+- `ollama` runs the models, which are stored in the `ollama_data` volume. On every start it also downloads any models that are missing or out of date.
+- Start order: `ollama` reports healthy only once both models are downloaded, and `fake-azure` waits for that before starting.
 
 ## Start the proxy
 
@@ -40,7 +38,7 @@ docker compose up -d
 The first start downloads both models (a few GB), so it takes a while. The proxy waits until the download finishes. To follow progress:
 
 ```bash
-docker compose logs -f ollama-pull fake-azure
+docker compose logs -f ollama fake-azure
 ```
 
 Check that everything works:
@@ -96,7 +94,7 @@ model_list:
       api_base: http://ollama:11434      # container hostname, not localhost
 ```
 
-If you map to an Ollama model that isn't downloaded yet, also add an `ollama pull <model>` line to the `ollama-pull` service in `docker-compose.yml`. Then apply the changes:
+If you map to an Ollama model that isn't downloaded yet, also update the `ollama` service in `docker-compose.yml` in two places: add an `ollama pull <model>` line to its `command`, and add `&& ollama show <model> >/dev/null` to its `healthcheck`. Without the health check entry, `fake-azure` may start before the new model has finished downloading. Then apply the changes:
 
 ```bash
 docker compose up -d                  # downloads any new models
