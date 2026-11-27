@@ -91,6 +91,8 @@ You: quit
 Bye.
 ```
 
+Note: `llama3.2` is a small local model and can state wrong facts with confidence. In the example above, several distances are wrong (Milan is about 480 km from Rome, Naples about 190 km, Bologna about 300 km), and Milan and Venice are not really "around" Rome. Don't rely on its answers for facts.
+
 ## Point an existing app at it
 
 Your app's code doesn't need to change. Only its configuration does.
