@@ -51,15 +51,15 @@ python call-azure.py
 The script asks for a question, sends it to the `gpt-4o` deployment and streams the reply as it is generated, then prints the time to the first token and the total time. It then embeds the same question with `text-embedding-3-small`. Example:
 
 ```
-Enter your question: Say hi in 3 words
+Enter your question: What is the capital of Italy?
 Calling fake Azure OpenAI (LiteLLM + Ollama)...
-Hello friend
-Time to first token: 0.8785338401794434 seconds
-Time taken: 1.0037078857421875 seconds
-Embedding dims: 768, first 5: [...]
+The capital of Italy is Rome (Italian: Roma).
+Time to first token: 1.4117238521575928 seconds
+Time taken: 2.116405963897705 seconds
+Embedding dims: 768, first 5: [0.024508625, 0.042200096, -0.111118354, 0.020696532, 0.015185885]
 ```
 
-To run it without typing, pipe the question in: `echo "Say hi in 3 words" | python call-azure.py`.
+To run it without typing, pipe the question in: `echo "What is the capital of Italy?" | python call-azure.py`.
 
 ### Chat with memory
 
