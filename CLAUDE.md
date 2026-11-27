@@ -15,13 +15,18 @@ docker compose up -d
 # Watch first-run model download / proxy startup
 docker compose logs -f ollama fake-azure
 
-# Smoke test via Azure SDK (uses local venv, Python 3.15)
+# Smoke test via Azure SDK (uses local venv, Python 3.15; .venv is gitignored)
+python3 -m venv .venv             # only if .venv doesn't exist
 source .venv/bin/activate
 pip install -r requirements.txt   # only if venv is missing deps
-python call-azure.py
+python call-azure.py              # prompts for a question; streams reply, then embeds it
+
+# Both scripts read stdin via input(); pipe input for non-interactive runs
+echo "What is the capital of Italy?" | python call-azure.py
 
 # Interactive chat that remembers the last 5 turns (type exit/quit to stop)
 python call-azure-with-memory.py
+printf 'What is the capital of Italy?\nWhat cities are around it?\nquit\n' | python call-azure-with-memory.py
 
 # Reload after editing litellm_config.yaml
 docker compose restart fake-azure
