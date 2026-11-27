@@ -2,7 +2,7 @@ services:
   ollama:
     image: ollama/ollama:latest
     ports:
-      - "11434:11434"
+      - "127.0.0.1:11435:11434" # host 11435: a native Ollama app may hold 11434
     volumes:
       - ollama_data:/root/.ollama
     # Start the server, pull models into the volume, then keep serving.
