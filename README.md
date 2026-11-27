@@ -48,17 +48,37 @@ source .venv/bin/activate
 python call-azure.py
 ```
 
-The script asks for a question, sends it to the `gpt-4o` deployment and prints the reply and how long the call took. It then embeds the same question with `text-embedding-3-small`. Example:
+The script asks for a question, sends it to the `gpt-4o` deployment and streams the reply as it is generated, then prints the time to the first token and the total time. It then embeds the same question with `text-embedding-3-small`. Example:
 
 ```
 Enter your question: Say hi in 3 words
 Calling fake Azure OpenAI (LiteLLM + Ollama)...
-Hello there!
-Time taken: 8.273327112197876 seconds
+Hello friend
+Time to first token: 0.8785338401794434 seconds
+Time taken: 1.0037078857421875 seconds
 Embedding dims: 768, first 5: [...]
 ```
 
 To run it without typing, pipe the question in: `echo "Say hi in 3 words" | python call-azure.py`.
+
+### Chat with memory
+
+```bash
+python call-azure-with-memory.py
+```
+
+An interactive chat with the `gpt-4o` deployment. Replies are printed as they are generated. The script keeps the last 5 turns and adds them to each prompt as `User:` / `Assistant:` lines, so the model can refer to earlier messages. History is kept in memory only and is lost when the script exits. Type `exit` or `quit` (or press Ctrl-D) to stop. Example:
+
+```
+You: My name is Sergio.
+Assistant: Hello Sergio, it's nice to meet you.
+
+You: What is my name?
+Assistant: Your name is Sergio.
+
+You: quit
+Bye.
+```
 
 ## Point an existing app at it
 

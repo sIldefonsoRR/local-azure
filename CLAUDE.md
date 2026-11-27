@@ -20,6 +20,9 @@ source .venv/bin/activate
 pip install -r requirements.txt   # only if venv is missing deps
 python call-azure.py
 
+# Interactive chat that remembers the last 5 turns (type exit/quit to stop)
+python call-azure-with-memory.py
+
 # Reload after editing litellm_config.yaml
 docker compose restart fake-azure
 ```
