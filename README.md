@@ -35,16 +35,23 @@ flowchart LR
 docker compose up -d
 ```
 
-The first start downloads both models (a few GB), so it takes a while. The proxy waits until the download finishes. To follow progress:
+The first start downloads both models (about 2.3 GB: `llama3.2` is 2.0 GB, `nomic-embed-text` 274 MB), so it takes a while. The proxy waits until the download finishes. To follow progress:
 
 ```bash
 docker compose logs -f ollama fake-azure
 ```
 
-Check that everything works:
+Check that everything works. The test scripts need the OpenAI Python SDK. `.venv` is not in the repo, so create it on first use:
 
 ```bash
+python3 -m venv .venv
 source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+After that, `source .venv/bin/activate` is enough. Then run:
+
+```bash
 python call-azure.py
 ```
 
@@ -67,7 +74,7 @@ To run it without typing, pipe the question in: `echo "What is the capital of It
 python call-azure-with-memory.py
 ```
 
-An interactive chat with the `gpt-4o` deployment. Replies are printed as they are generated. The script keeps the last 5 turns and adds them to each prompt as `User:` / `Assistant:` lines, so the model can refer to earlier messages. History is kept in memory only and is lost when the script exits. Type `exit` or `quit` (or press Ctrl-D) to stop. Example:
+An interactive chat with the `gpt-4o` deployment. Replies are printed as they are generated. The script keeps the last 5 turns and adds them to each prompt as `User:` / `Assistant:` lines, so the model can refer to earlier messages. History is kept in memory only and is lost when the script exits. Type `exit` or `quit` (or press Ctrl-D or Ctrl-C at the `You:` prompt) to stop. Ctrl-C while a reply is printing stops only that reply, which is then not kept in the history. Example:
 
 ```
 Chat with fake Azure OpenAI (remembers last 5 turns). Type 'exit' or 'quit' to stop.
