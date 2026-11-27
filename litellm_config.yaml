@@ -4,7 +4,7 @@ model_list:
       model: ollama/llama3.2
       api_base: http://ollama:11434
 
-  # Optional: add an embedding deployment if your app uses embeddings
+  # Embedding deployment (used by call-azure.py)
   - model_name: text-embedding-3-small
     litellm_params:
       model: ollama/nomic-embed-text

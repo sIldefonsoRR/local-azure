@@ -28,7 +28,7 @@ services:
   fake-azure:
     image: ghcr.io/berriai/litellm:main-latest
     ports:
-      - "4000:4000"
+      - "127.0.0.1:4000:4000" # localhost only: no auth, never expose
     environment:
       LITELLM_DANGEROUSLY_PERMIT_WEAK_OR_UNSET_MASTER_KEY: "true"
     volumes:

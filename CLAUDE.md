@@ -36,7 +36,7 @@ docker compose restart fake-azure
 
 Two compose services:
 
-1. `ollama` — serves models on `:11434`, data persisted in `ollama_data` volume. Its overridden `command` starts `ollama serve` in the background, pulls `llama3.2` and `nomic-embed-text`, then `wait`s on the server. A `trap` forwards SIGTERM so `docker compose stop` is clean. Pull failures only log `WARN:` (so offline restarts with cached models still work). Healthcheck runs `ollama show` on both models, so it turns healthy only after the pull; `start_period: 15m` covers first-run download time.
+1. `ollama` — serves models on `:11434` (published on all interfaces; a native Ollama app on the host may already hold `127.0.0.1:11434`, in which case host `localhost:11434` reaches the native one, not the container, and binding the container port to `127.0.0.1` fails with "address already in use"), data persisted in `ollama_data` volume. Its overridden `command` starts `ollama serve` in the background, pulls `llama3.2` and `nomic-embed-text`, then `wait`s on the server. A `trap` forwards SIGTERM so `docker compose stop` is clean. Pull failures only log `WARN:` (so offline restarts with cached models still work). Healthcheck runs `ollama show` on both models, so it turns healthy only after the pull; `start_period: 15m` covers first-run download time.
 2. `fake-azure` — LiteLLM proxy (`ghcr.io/berriai/litellm:main-latest`) on `:4000`, configured by `litellm_config.yaml` mounted at `/app/config.yaml`. `depends_on` `ollama: service_healthy`, so first startup is slow.
 
 Shell variables in the `ollama` command use `$$` to escape Compose interpolation.
@@ -49,4 +49,4 @@ To expose a new deployment: add a `model_list` entry (with `api_base: http://oll
 
 `litellm_settings.drop_params: true` is required: the OpenAI SDK sends `encoding_format=base64` on embeddings calls, which Ollama rejects with `UnsupportedParamsError`.
 
-**Auth**: no master key is set (`LITELLM_DANGEROUSLY_PERMIT_WEAK_OR_UNSET_MASTER_KEY=true`), so any `api_key` works. Clients use `AzureOpenAI(azure_endpoint="http://localhost:4000", api_key=<anything>, api_version=...)` — see `call-azure.py`. Local-dev only; do not expose port 4000.
+**Auth**: no master key is set (`LITELLM_DANGEROUSLY_PERMIT_WEAK_OR_UNSET_MASTER_KEY=true`), so any `api_key` works. Clients use `AzureOpenAI(azure_endpoint="http://localhost:4000", api_key=<anything>, api_version=...)` — see `call-azure.py`. Local-dev only: port 4000 is published on `127.0.0.1` only (`host.docker.internal:4000` still works from other containers); keep it that way.
